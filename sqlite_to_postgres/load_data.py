@@ -38,8 +38,8 @@ if __name__ == '__main__':
         with closing(sqlite3.connect('db.sqlite')) as sqlite_conn, closing(psycopg.connect( **dsl, row_factory=dict_row, cursor_factory=ClientCursor)) as pg_conn:
             load_from_sqlite(sqlite_conn, pg_conn)
     except sqlite3.Error as e:
-        log.exception(f'SQLite Error\n{e}\n')
+        log.exception('SQLite Error\n%s\n', e)
     except psycopg.DatabaseError as e:
-        log.exception(f'PostgreSQL\n{e}\n')
+        log.exception('PostgreSQL\n%s\n', e)
     except Exception as e:
         log.exception(e)

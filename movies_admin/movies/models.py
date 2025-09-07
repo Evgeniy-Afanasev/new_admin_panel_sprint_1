@@ -5,8 +5,8 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class TimeStampedMixin(models.Model):
-    created = models.DateTimeField('Создание записи', auto_now_add=True)
-    modified = models.DateTimeField('Редактирование записи', auto_now=True)
+    created_at = models.DateTimeField('Создание записи', auto_now_add=True)
+    updated_at = models.DateTimeField('Редактирование записи', auto_now=True)
 
     class Meta:
         abstract = True
@@ -19,11 +19,6 @@ class UUIDMixin(models.Model):
         abstract = True
 
 
-# id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-# name TEXT NOT NULL UNIQUE,
-# description TEXT,
-# created timestamp with time zone,
-# modified timestamp with time zone
 class Genre(UUIDMixin, TimeStampedMixin):
     name = models.CharField(_('name'), max_length=255)
     description = models.TextField(_('description'), blank=True)
@@ -36,10 +31,7 @@ class Genre(UUIDMixin, TimeStampedMixin):
     def __str__(self):
         return self.name
 
-# id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-# full_name TEXT NOT NULL,
-# created timestamp with time zone,
-# modified timestamp with time zone
+
 class Person(UUIDMixin, TimeStampedMixin):
     full_name = models.CharField(_('full_name'), max_length=255)
 
@@ -52,14 +44,6 @@ class Person(UUIDMixin, TimeStampedMixin):
         return self.full_name
 
 
-# id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-# title TEXT NOT NULL,
-# description TEXT,
-# creation_date DATE,
-# rating FLOAT,
-# type TEXT not null,
-# created timestamp with time zone,
-# modified timestamp with time zone
 class FilmWork(UUIDMixin, TimeStampedMixin):
 
     class Type(models.TextChoices):
@@ -71,7 +55,6 @@ class FilmWork(UUIDMixin, TimeStampedMixin):
     creation_date = models.DateField(_('creation_date'))
     rating = models.FloatField(_('rating'), blank=True, validators=[MinValueValidator(0), MaxValueValidator(100)])
     type = models.CharField(_('type'), max_length=50, choices=Type.choices)
-    certificate = models.CharField(_('certificate'), max_length=512, blank=True)
     file_path = models.FileField(_('file_path'), blank=True, null=True, upload_to='movies/')
     genres = models.ManyToManyField(Genre, through='GenreFilmWork')
     persons = models.ManyToManyField(Person, through='PersonFilmWork')
@@ -86,9 +69,9 @@ class FilmWork(UUIDMixin, TimeStampedMixin):
 
 
 class GenreFilmWork(UUIDMixin):
-    film_work = models.ForeignKey('FilmWork', on_delete=models.CASCADE, verbose_name=_('film work'))
+    film_work = models.ForeignKey(FilmWork, on_delete=models.CASCADE)
     genre = models.ForeignKey('Genre', on_delete=models.CASCADE, verbose_name=_('genre'))
-    created = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "content\".\"genre_film_work"
@@ -97,10 +80,15 @@ class GenreFilmWork(UUIDMixin):
 
 
 class PersonFilmWork(UUIDMixin):
+    class Role(models.TextChoices):
+        ACTOR = 'actor', _('actor')
+        DIRECTOR = 'director', _('director')
+        WRITER = 'writer', _('writer')
+
     film_work = models.ForeignKey('FilmWork', on_delete=models.CASCADE, verbose_name=_('film work'))
     person = models.ForeignKey('Person', on_delete=models.CASCADE, verbose_name=_('person'))
-    role = models.TextField('role')
-    created = models.DateTimeField(auto_now_add=True)
+    role = models.CharField(_('role'), max_length=50, choices=Role.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "content\".\"person_film_work"
